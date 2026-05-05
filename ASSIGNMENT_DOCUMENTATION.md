@@ -1,8 +1,8 @@
 # Assignment 3 - Complete Documentation
 
-**Student Name**: [Your Full Name]  
-**Student ID**: [Your ID]  
-**Date Submitted**: [Submission Date]
+**Student Name**: Danah Alsheddi
+**Student ID**: 445052125
+**Date Submitted**: 7/5/2026
 
 ---
 
