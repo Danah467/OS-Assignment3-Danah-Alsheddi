@@ -123,6 +123,8 @@ class Process implements Runnable {
         // This ensures only allowed number of processes run simultaneously
 
         try {
+
+            SharedResources.cpuSemaphore.Acquire();
             if (startTime == -1) {
                 startTime = System.currentTimeMillis();
             }
@@ -154,6 +156,10 @@ class Process implements Runnable {
 
             } catch (InterruptedException e) {
                 System.out.println(Colors.RED + "\n  ✗ " + name + " was interrupted." + Colors.RESET);
+            }
+
+            finally {
+                SharedResources.cpuSemaphore.release();
             }
 
             remainingTime -= runTime;
