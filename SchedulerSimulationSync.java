@@ -3,6 +3,7 @@ import java.util.Queue;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,26 +52,47 @@ class SharedResources {
     public static void incrementContextSwitch() {
         // TODO: Protect this critical section with a lock
         // RACE CONDITION: Multiple threads might read and write simultaneously!
-        contextSwitchCount++;
+        lock.lock();
+        try {
+            contextSwitchCount++;
+        } finally {
+            lock.unlock();
+        }
+
     }
 
     // Method to increment completed process counter
     public static void incrementCompletedProcess() {
         // TODO: Protect this critical section with a lock
-        completedProcessCount++;
+        lock.lock();
+        try {
+            completedProcessCount++;
+        } finally {
+            lock.unlock();
+        }
     }
 
     // Method to add waiting time
     public static void addWaitingTime(long time) {
         // TODO: Protect this critical section with a lock
-        totalWaitingTime += time;
+        lock.lock();
+        try {
+            totalWaitingTime += time;
+        } finally {
+            lock.unlock();
+        }
     }
 
     // Method to log execution
     public static void logExecution(String message) {
         // TODO: Protect this critical section with a lock
         // RACE CONDITION: ArrayList is not thread-safe!
-        executionLog.add(message);
+        lock.lock();
+        try {
+            executionLog.add(message);
+        } finally {
+            lock.unlock();
+        }
     }
 }
 
