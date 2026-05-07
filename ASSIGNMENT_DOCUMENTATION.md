@@ -14,7 +14,7 @@
 > Set sharing to "Anyone with the link can view".
 > Test the link in incognito/private mode before submitting.
 
-**Video Link**: [Paste your personal Gmail Google Drive link here]
+**Video Link**: (https://drive.google.com/file/d/1vDKE_k3wczC2SzIPO2OEklE6wX4IfCWN/view?usp=drivesdk)
 
 **Video filename**: `[YourStudentID]_Assignment3_Synchronization.mp4`
 
@@ -251,53 +251,89 @@ The semaphore guarantees that only one process runs at a time, preventing overla
 
 ### Test 1: Consistency Check
 **What I tested**: Running program multiple times to verify consistent results
-
+I tested whether the scheduler produces consistent and correct results when executed multiple times with the same student ID and configuration.
 **Testing procedure**: 
 ```bash
 # Commands used (run the program at least 5 times)
-```
+```# Run the program multiple times
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+
 
 **Results**: 
 (Show that running multiple times produces consistent, correct results)
+All runs produced stable and predictable behavior. The number of completed processes, context switches, waiting times, and execution logs were consistent across all executions. No deadlocks or unexpected behavior occurred.
+
+
 
 **Why synchronization is necessary**: 
 (Explain what race conditions COULD occur without synchronization, even if you didn't observe them. Explain which shared resources need protection and why.)
+Without synchronization, shared counters could produce different values on each run due to race conditions. The execution log could become corrupted, and multiple threads might enter the CPU simultaneously. Synchronization ensures deterministic behavior and prevents inconsistent results.
+
 
 **Conclusion**: 
-
+The program behaves consistently across repeated runs, confirming that the synchronization mechanisms are correctly implemented.
 ---
 
 ### Test 2: Exception Testing
 **What I tested**: Checking for ConcurrentModificationException
+I tested whether the program avoids ConcurrentModificationException when multiple threads write to the execution log.
 
 **Testing procedure**: 
+I increased the number of processes and ran the scheduler repeatedly to stress‑test concurrent log writes.
+
 
 **Results**: 
+No exceptions occurred. The log entries were recorded correctly and in order.
+
 
 **What this proves**: 
+The dedicated logLock successfully protects the ArrayList, making the logging mechanism thread‑safe.
 
 ---
 
 ### Test 3: Correctness Verification
 **What I tested**: Verifying correct final values (total burst time, context switches, etc.)
+I verified that the final statistics (context switches, completed processes, waiting times) match the expected behavior of a synchronized CPU scheduler.
+
 
 **Expected values**: 
+* All processes must finish
+* Remaining time must reach 0
+* Context switches should be ≥ number of processes
+* Waiting time must be non‑negative
+* Execution log size should match the number of events
+
 
 **Actual values**: 
+All processes completed successfully, context switches were correctly counted, and waiting times were calculated accurately. The execution log contained the correct number of entries.
+
 
 **Analysis**: 
+The scheduler executed each process in the correct order, and the synchronization ensured accurate and safe updates to shared resources.
+
 
 ---
 
 ### Test 4: Different Scenarios
 **Scenario tested**: [e.g., different time quantum, more processes, etc.]
+I tested the scheduler with different time quantum values and different numbers of processes.
+
 
 **Purpose**: 
+To verify that the scheduler remains stable and correct under varying workloads.
+
 
 **Results**: 
+The program handled all scenarios correctly. Processes executed in the correct order, the ready queue updated properly, and no synchronization issues occurred.
+
+
 
 **What I learned**: 
-
+Proper synchronization ensures that the scheduler behaves correctly even when the workload changes. Locks and semaphores prevent unpredictable behavior and maintain system stability.
 ---
 
 ## Part 5: Reflection and Learning
@@ -305,51 +341,61 @@ The semaphore guarantees that only one process runs at a time, preventing overla
 ### What I learned about synchronization:
 
 [6-8 sentences about key concepts, challenges, insights]
-
+Throughout this assignment, I learned how essential synchronization is in any multithreaded system. I realized that even simple shared variables can cause major inconsistencies when accessed by multiple threads without protection. I learned how ReentrantLock provides mutual exclusion and how semaphores control access to limited resources like the CPU. Implementing try‑finally blocks taught me the importance of always releasing locks to avoid deadlocks. I also gained experience identifying critical sections and choosing the correct synchronization mechanism for each one. Overall, this assignment helped me understand how synchronization ensures correctness, stability, and predictable behavior in concurrent programs.
 ---
 
 ### Real-world applications:
 
 Give TWO examples where synchronization is critical:
 
-**Example 1**: 
+**Example 1**: Banking systems where multiple transactions update the same account balance. Synchronization ensures that deposits and withdrawals do not interfere with each other.
 
-**Example 2**: 
+**Example 2**: Operating systems managing access to hardware resources such as printers, disk drives, and CPU cores. Synchronization prevents multiple processes from using the same device at the same time.
 
 ---
 
 ### How I would explain synchronization to others:
 
 [Explain to someone who just finished Assignment 1 - use simple terms and analogies]
-
+I would explain synchronization as a way to organize how multiple threads share resources. Without synchronization, threads behave like people trying to use the same tool at the same time, causing confusion and mistakes. Locks and semaphores act like a “turn‑taking system” that ensures only one thread uses a resource at a time. This prevents errors, keeps data consistent, and makes the program behave correctly even when many threads run together.
 ---
 
 ## Part 6: GitHub Repository Information
 
-**Repository URL**: 
+**Repository URL**: https://github.com/Danah467/OS-Assignment3-Danah-Alsheddi.git
 
-**Number of commits**: 
+**Number of commits**: 8
 
 **Commit messages**: 
-1. 
-2. 
-3. 
-4. 
-
+1. change student id to 445052125 Danah467
+2. Initialize ReentrantLock and Semaphore for process synchronization
+3. Apply Mutex locks to protect shared counters and prevent race conditions
+4. Implement Semaphore control in Process run method to simulate CPU mutual exclusion 
+5.Apply synchronization to runToCompletion method for the final process execution
+6.Improve process execution flow and enhance synchronization handling
+7.answer
+8.Continuation of the answers
 ---
 
 ## Summary
 
 **Total time spent on assignment**: 
+Approximately 8–10 hours across several days, including coding, debugging, testing, documentation, and video preparation.
+
 
 **Key takeaways**: 
-1. 
-2. 
-3. 
+1. I learned how synchronization prevents race conditions and ensures correct behavior in multithreaded programs.
+2. I understood the practical differences between locks and semaphores and how each one solves a different concurrency problem.
+3. I gained experience identifying critical sections and applying the correct synchronization mechanism to protect shared resources.
+
+
 
 **Most challenging aspect**: 
+The most challenging part was ensuring that the semaphore was always released correctly and preventing deadlocks when multiple threads accessed shared resources. Understanding how each thread interacted with the scheduler required careful testing and debugging.
+
 
 **What I'm most proud of**: 
+I am proud of successfully implementing full synchronization using ReentrantLock and Semaphore, achieving consistent and correct output across all test runs. I am also proud of producing clean, well‑structured code and a clear documentation file that explains my design decisions.
 
 ---
 
