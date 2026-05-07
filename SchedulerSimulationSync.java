@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 // ANSI Color Codes for enhanced terminal output
 class Colors {
@@ -40,13 +41,14 @@ class SharedResources {
     // TODO #1: Add a ReentrantLock(s) here to protect critical sections
     // Example: public static final ReentrantLock lock = new ReentrantLock();
     // ReentrantLock to handle mutual exclusion for shared variables
-    private static final ReentrantLock lock = new ReentrantLock();
+    public static final ReentrantLock lock = new ReentrantLock();
+    public static final ReentrantLock logLock = new ReentrantLock();
 
     // Binary semaphore to control CPU access (1 permit at a time)
-    public static final Semaphore cpuSemaphore = new Semaphore(1);
 
     // TODO #2: Add a Semaphore to limit concurrent process execution
     // Example: public static final Semaphore cpuSemaphore = new Semaphore(1);
+    public static final Semaphore cpuSemaphore = new Semaphore(1);
 
     // Method to increment context switch counter
     public static void incrementContextSwitch() {
@@ -58,23 +60,25 @@ class SharedResources {
         } finally {
             lock.unlock();
         }
-
     }
 
     // Method to increment completed process counter
     public static void incrementCompletedProcess() {
         // TODO: Protect this critical section with a lock
+
         lock.lock();
         try {
             completedProcessCount++;
         } finally {
             lock.unlock();
         }
+
     }
 
     // Method to add waiting time
     public static void addWaitingTime(long time) {
         // TODO: Protect this critical section with a lock
+
         lock.lock();
         try {
             totalWaitingTime += time;
@@ -87,11 +91,11 @@ class SharedResources {
     public static void logExecution(String message) {
         // TODO: Protect this critical section with a lock
         // RACE CONDITION: ArrayList is not thread-safe!
-        lock.lock();
+        logLock.lock();
         try {
             executionLog.add(message);
         } finally {
-            lock.unlock();
+            logLock.unlock();
         }
     }
 }
@@ -124,7 +128,8 @@ class Process implements Runnable {
 
         try {
 
-            SharedResources.cpuSemaphore.Acquire();
+            SharedResources.cpuSemaphore.acquire();
+
             if (startTime == -1) {
                 startTime = System.currentTimeMillis();
             }
@@ -141,26 +146,17 @@ class Process implements Runnable {
             // Log execution
             SharedResources.logExecution(name + " started quantum execution");
 
-            try {
-                int steps = 5;
-                int stepTime = runTime / steps;
+            int steps = 5;
+            int stepTime = runTime / steps;
 
-                for (int i = 1; i <= steps; i++) {
-                    Thread.sleep(stepTime);
-                    int quantumProgress = (i * 100) / steps;
-                    quantumBar = createProgressBar(quantumProgress, 15);
-                    System.out.print("\r  " + Colors.YELLOW + "⚡" + Colors.RESET +
-                            " Quantum progress: " + quantumBar);
-                }
-                System.out.println();
-
-            } catch (InterruptedException e) {
-                System.out.println(Colors.RED + "\n  ✗ " + name + " was interrupted." + Colors.RESET);
+            for (int i = 1; i <= steps; i++) {
+                Thread.sleep(stepTime);
+                int quantumProgress = (i * 100) / steps;
+                quantumBar = createProgressBar(quantumProgress, 15);
+                System.out.print("\r  " + Colors.YELLOW + "⚡" + Colors.RESET +
+                        " Quantum progress: " + quantumBar);
             }
-
-            finally {
-                SharedResources.cpuSemaphore.release();
-            }
+            System.out.println();
 
             remainingTime -= runTime;
             int overallProgress = (int) (((double) (burstTime - remainingTime) / burstTime) * 100);
@@ -185,11 +181,20 @@ class Process implements Runnable {
                         Colors.RESET + Colors.BRIGHT_GREEN + " finished execution!" +
                         Colors.RESET);
             }
-            System.out.println();
+        }
 
-        } finally {
+        catch (InterruptedException e) {
+            System.out.println(Colors.RED + "\n  ✗ " + name + " was interrupted." + Colors.RESET);
+        }
+
+        catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        finally {
             // TODO #4: Release CPU semaphore here
             // Always release in finally block to prevent deadlocks!
+            SharedResources.cpuSemaphore.release();
         }
     }
 
@@ -222,17 +227,11 @@ class Process implements Runnable {
             long waitingTime = (completionTime - creationTime) - burstTime;
             SharedResources.addWaitingTime(waitingTime);
             SharedResources.incrementCompletedProcess();
+            SharedResources.logExecution(name + " completed execution");
 
             System.out.println(Colors.BRIGHT_GREEN + "  ✓ " + Colors.BOLD + Colors.CYAN + name +
                     Colors.RESET + Colors.BRIGHT_GREEN + " finished execution!" + Colors.RESET);
             System.out.println();
-
-            long endTime = System.currentTimeMillis();
-            long turnaroundTime = endTime - arrivalTime;
-            long waitingTime = turnaroundTime - burstTime;
-
-            SharedResources.addWaitingTime(waitingTime);
-            SharedResources.incrementCompletedProcess();
 
         } catch (InterruptedException e) {
             System.out.println(Colors.RED + "  ✗ " + name + " was interrupted." + Colors.RESET);
